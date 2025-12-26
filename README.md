@@ -34,16 +34,3 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-<!-- DATABASE_URL="postgresql://admin:admin@localhost:5432/better-auth-system"
-
-BETTER_AUTH_SECRET=JoPAaXVRZppGEIfhzWUeYcY1PrzwQz0a
-BETTER_AUTH_URL=http://localhost:3000 # Base URL of your app
-
-
-GITHUB_CLIENT_ID="Ov23liUV0dWQp12xrODg"
-GITHUB_CLIENT_SECRET="d99b64825eb1696ba9a79088d0d6efcdc2287c95"
-
-GOOGLE_CLIENT_ID="915909447906-jq08tuet3vudj3j0p033opo8rhcmbv8s.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET="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" -->
-
