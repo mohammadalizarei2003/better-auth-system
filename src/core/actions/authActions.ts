@@ -16,6 +16,7 @@ type ActionResponse<T = never> = {
     message: string;
     redirectTo?: string;
     data?: T;
+    requires2FA?: boolean;
 };
 
 const ERROR_MESSAGES = {
@@ -137,9 +138,23 @@ export const signinAction = async (
 
     try {
         const result = await auth.api.signInEmail({ body: { email, password } });
+        console.log("===================================");
+        console.log(result);
+        console.log("===================================");
+        if ("twoFactorRedirect" in result && result.twoFactorRedirect) {
+            return { success: true, message: 'لطفاً کد احراز هویت دو مرحله‌ای را وارد کنید', requires2FA: true };
+        }
         if (!result?.user) return { success: false, message: ERROR_MESSAGES.INVALID_CREDENTIALS };
-        revalidatePath('/', 'layout');
-        return { success: true, message: ERROR_MESSAGES.SIGNIN_SUCCESS, redirectTo: '/dashboard' };
+        
+        
+        if (result.user) {
+            revalidatePath('/', 'layout');
+            return { success: true, message: ERROR_MESSAGES.SIGNIN_SUCCESS, redirectTo: '/dashboard' };
+        }
+
+        return { success: false, message: ERROR_MESSAGES.INVALID_CREDENTIALS };
+        // revalidatePath('/', 'layout');
+        // return { success: true, message: ERROR_MESSAGES.SIGNIN_SUCCESS, redirectTo: '/dashboard' };
     } catch (error) {
         if (error instanceof APIError) return handleBetterAuthError(error);
         logError('Signin', error);
@@ -242,5 +257,63 @@ export const resendVerificationEmailAction = async (
                 ? error.message
                 : ERROR_MESSAGES.SERVER_ERROR,
         };
+    }
+};
+
+
+export const enableTwoFactorAction = async (password: string): Promise<ActionResponse<{ totpURI?: string; backupCodes?: string[] }>> => {
+    try {
+        const result = await auth.api.enableTwoFactor({ body: { password } });
+        if (result.totpURI && result.backupCodes) {
+            console.log('✅ TOTP URI (برای QR کد):', result.totpURI);
+            console.log('✅ کد شش رقمی secret نیست، اما URI بالا رو برای تست دستی استفاده کن');
+            console.log('✅ Backup Codes (به کاربر نشون بده):', result.backupCodes.join(', '));
+            return { success: true, message: 'QR آماده است. اسکن کن و کد رو برای فعال‌سازی وارد کن.', data: { totpURI: result.totpURI, backupCodes: result.backupCodes } };
+        }
+        return { success: false, message: 'خطا در تولید QR' };
+    } catch (error) {
+        if (error instanceof APIError) return handleBetterAuthError(error);
+        logError('Enable2FA', error);
+        return { success: false, message: ERROR_MESSAGES.SERVER_ERROR };
+    }
+};
+
+export const confirmEnableTwoFactorAction = async (code: string): Promise<ActionResponse> => {
+    try {
+        const result = await auth.api.verifyTOTP({ body: { code } });
+        if (result.token) {
+            return { success: true, message: 'احراز هویت دو مرحله‌ای فعال شد!' };
+        }
+        return { success: false, message: 'کد اشتباه است' };
+    } catch (error) {
+        if (error instanceof APIError) return handleBetterAuthError(error);
+        logError('Confirm2FA', error);
+        return { success: false, message: ERROR_MESSAGES.INVALID_CREDENTIALS };
+    }
+};
+
+export const disableTwoFactorAction = async (password: string): Promise<ActionResponse> => {
+    try {
+        await auth.api.disableTwoFactor({ body: { password } });
+        return { success: true, message: 'احراز هویت دو مرحله‌ای غیرفعال شد' };
+    } catch (error) {
+        if (error instanceof APIError) return handleBetterAuthError(error);
+        logError('Disable2FA', error);
+        return { success: false, message: ERROR_MESSAGES.INVALID_CREDENTIALS };
+    }
+};
+
+export const verify2FASigninAction = async (code: string): Promise<ActionResponse> => {
+    try {
+        const result = await auth.api.verifyTOTP({ body: { code } }); // trustDevice: false نگه دار، یا true اگر بخوای دستگاه اعتماد بشه
+        if (result.token) {
+            revalidatePath('/', 'layout');
+            return { success: true, message: ERROR_MESSAGES.SIGNIN_SUCCESS, redirectTo: '/dashboard' };
+        }
+        return { success: false, message: 'کد شش رقمی اشتباه است' };
+    } catch (error) {
+        if (error instanceof APIError) return handleBetterAuthError(error);
+        logError('Verify2FALogin', error);
+        return { success: false, message: ERROR_MESSAGES.SERVER_ERROR };
     }
 };

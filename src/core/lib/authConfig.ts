@@ -60,19 +60,21 @@ export const auth = betterAuth({
         }
     },
 
+
+
     plugins: [
         nextCookies(),
-        // twoFactor({
-        //     issuer: 'betterAuthSystem',
-        //     skipVerificationOnEnable: false,
-        //     totpOptions: {
-        //         digits: 6,
-        //         period: 30,
-        //     },
-        //     backupCodeOptions: {
-        //         amount: 10,
-        //         length: 8,
-        //     }
-        // },)
+        twoFactor({
+            issuer: 'betterAuthSystem',
+            skipVerificationOnEnable: false,
+            totpOptions: {
+                digits: 6,
+                period: 30,
+            },
+            backupCodeOptions: {
+                amount: 10,
+                length: 8,
+            },
+        },)
     ]
 });

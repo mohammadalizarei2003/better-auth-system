@@ -15,6 +15,10 @@ export const signinFormDataSchema = z.object({
 });
 
 export type SigninFormDataType = z.infer<typeof signinFormDataSchema>;
+const codeSchema = z.object({
+    code: z.string().length(6, "کد باید دقیقاً ۶ رقم باشد"),
+});
+type CodeData = z.infer<typeof codeSchema>;
 export const forgotPasswordFormDataSchema = z.object({
     email: z.string().min(5, 'Email address is required'),
 })
